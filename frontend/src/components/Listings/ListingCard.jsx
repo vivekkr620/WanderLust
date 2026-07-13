@@ -1,6 +1,12 @@
+import { Link } from "react-router-dom";
+
+
 function ListingCard({ listing }) {
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer">
+    <Link
+      to={`/listings/${listing.id}`}
+      className="block bg-white rounded-xl shadow-md overflow-hidden cursor-pointer"
+    >     
       <img
           src={listing.image.url}
           alt={listing.title}
@@ -17,7 +23,7 @@ function ListingCard({ listing }) {
 
       <p className="mt-2 font-bold">₹{listing.price} / night</p>
 
-    </div>
+    </Link>
   );
 }
 

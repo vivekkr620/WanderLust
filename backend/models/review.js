@@ -10,11 +10,11 @@ const reviewSchema = new Schema({
     },
     createdAt: {
         type: Date, 
-        default: Date.now(),
+        default: Date.now,
     }, 
     author: {
         // type: Schema.Types.ObjectId, /* ek special data type hai jo MongoDB ke document ka unique id represent karta hai. */
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User",
     }
 });

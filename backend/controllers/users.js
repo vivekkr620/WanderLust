@@ -1,70 +1,131 @@
+
 const User = require("../models/user.js");
+const jwt = require("jsonwebtoken");
 
-
-/* signup form render */
-module.exports.renderSignupForm = (req, res) => {
-  res.render("users/signup.ejs");
-};
-
-/*  signup the user */
+/*===========================
+   SIGNUP
+  =========================== 
+*/
 module.exports.signup = async (req, res, next) => {
   try {
-    let { username, email, password } = req.body;
- 
-    const newUser = new User({ email, username });
+    const { username, email, password } = req.body;
+
+    const newUser = new User({
+      username,
+      email,
+    });
 
     const registeredUser = await User.register(newUser, password);
-
-    // console.log(registeredUser);
 
     req.login(registeredUser, (err) => {
       if (err) {
         return next(err);
       }
-      req.flash("success", "Welcome to Wanderlust");
-      // res.redirect("/listings");
-      return res.redirect("/listings");
 
+      // Generate JWT
+      const token = jwt.sign(
+        {
+          id: registeredUser._id,
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "7d",
+        }
+      );
+
+      return res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+        token,
+        user: {
+          id: registeredUser._id,
+          username: registeredUser.username,
+          email: registeredUser.email,
+        },
+      });
     });
-
   } catch (err) {
 
-    req.flash("error", err.message);
-    // res.redirect("/signup");
-    return res.redirect("/signup");
+    console.error("========== SIGNUP ERROR ==========");
+    console.error(err);
+    console.error(err.stack);
 
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
-
-/* render LoginForm */
-module.exports.renderLoginForm = (req, res) => {
-  res.render("users/login.ejs");
-};
-
-/* login form submit (User exist in DB or not) */
-// This is done by passport.authenticate in routes/user.js
-
+/*===========================
+   LOGIN (Email + Password)
+===========================*/
 module.exports.login = async (req, res) => {
+  const { email, password } = req.body;
 
-  req.flash("success", "Welcome back to your account! You are logged in");
+  // Step 1: Find user using email
+  const user = await User.findOne({ email });
 
-  let redirectUrl = res.locals.redirectUrl || "/listings";
-  res.redirect(redirectUrl);
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid email or password",
+    });
+  }
 
-};
-
-
-/* LOG OUT ROUTE */
-module.exports.logout = (req, res, next) => {
-
-  req.logout((err) => {
-
-    if(err) {
-      return next(err)
+  // Step 2: Authenticate using username (passport-local-mongoose)
+  User.authenticate()(user.username, password, (err, authenticatedUser, options) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Something went wrong",
+      });
     }
 
-    req.flash("success", "You are logged out!");
-    res.redirect("/listings");
-    
-  })
-}
+    if (!authenticatedUser) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // Step 3: Generate JWT
+    const token = jwt.sign(
+      {
+        id: authenticatedUser._id,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    // Step 4: Send Response
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: {
+        id: authenticatedUser._id,
+        username: authenticatedUser.username,
+        email: authenticatedUser.email,
+      },
+    });
+  });
+};
+
+/* ===========================
+   LOGOUT
+  =========================== 
+*/
+module.exports.logout = (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  });
+};

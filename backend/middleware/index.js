@@ -1,136 +1,87 @@
-// const Listing = require("./backend/models/listing.js");
-// const Review = require("./backend/models/review.js");
-// const ExpressError = require("./utils/ExpressError.js");
-// const { listingSchema, reviewSchema } = require("./schema.js"); //joi schema
-
-// /* To check user is logged in or not */
-
-// module.exports.isLoggedIn = (req, res, next) => {
-//   // console.log(req.path, "..", req.originalUrl);
-//   if (!req.isAuthenticated()) {
-//     // user logged in hai/nahi
-//     req.session.redirectUrl = req.originalUrl; // originalUrl is the complete URL
-    
-//     req.flash("error", "You must be logged in to create Listing!");
-//     return res.redirect("/login");
-//   }
-//   next();
-// };
-
-// // to save redirectUrl
-// module.exports.saveRedirectUrl = (req, res, next) => {
-//   if (req.session.redirectUrl) {
-//     res.locals.redirectUrl = req.session.redirectUrl;
-//   }
-//   next();
-// };
-
-// // listing's owner
-// module.exports.isOwner = async (req, res, next) => {
-//   let { id } = req.params;
-
-//   // Create middleware for that
-//   let listing = await Listing.findById(id);
-//   if (!listing.owner._id.equals(res.locals.currUser._id)) {
-//     req.flash("error", "You are not the owner of this listings");
-//     return res.redirect(`/listings/${id}`);
-//   }
-//   next();
-// };
-
-// /* VALIDATE LISTING */
-// module.exports.validateListing = (req, res, next) => {
-//   let { error } = listingSchema.validate(req.body);
-//   if (error) {
-//     let errMsg = error.details.map((el) => el.message).join(",");
-//     throw new ExpressError(400, errMsg);
-//   } else {
-//     next();
-//   }
-// };
-
-// /* VALIDATE REVIEW */
-// module.exports.validateReview = (req, res, next) => {
-//   let { error } = reviewSchema.validate(req.body);
-//   if (error) {
-//     let errMsg = error.details.map((el) => el.message).join(",");
-//     throw new ExpressError(400, errMsg);
-//   } else {
-//     next();
-//   }
-// };
-
-// /* isReviewAuthor */ 
-// module.exports.isReviewAuthor = async (req, res, next) => {
-//   let { id, reviewId } = req.params;
-
-//   // Create middleware for that
-//   let review = await Review.findById(reviewId);
-//   if (!review.author.equals(res.locals.currUser._id)) {
-//     req.flash("error", "You are not the author of this review");
-//     return res.redirect(`/listings/${id}`);  //redirect to listing show page 
-//   }
-//   next();
-// };
-
-
-/* ============================================================================================ */
-
 const Listing = require("../models/listing.js");
 const Review = require("../models/review.js");
 const ExpressError = require("../utils/ExpressError.js");
-const { listingSchema, reviewSchema } = require("../../schema.js");
+const { listingSchema, reviewSchema } = require("../schema.js");
 
-/* Check if user is logged in */
-module.exports.isLoggedIn = (req, res, next) => {
-  if (!req.isAuthenticated()) {
-    req.session.redirectUrl = req.originalUrl;
+/*===========================
+   JWT - Check Listing Owner
+  =========================== 
+*/
 
-    req.flash("error", "You must be logged in to create a listing!");
-    return res.redirect("/login");
-  }
+// module.exports.isOwner = async (req, res, next) => {
+//   const { id } = req.params;
 
-  next();
-};
+//   const listing = await Listing.findById(id);
 
-/* Save redirect URL */
-module.exports.saveRedirectUrl = (req, res, next) => {
-  if (req.session.redirectUrl) {
-    res.locals.redirectUrl = req.session.redirectUrl;
-  }
+//   console.log(listing);
 
-  next();
-};
+//   console.log("Owner =", listing.owner);
 
-/* Check listing owner */
+//   console.log("User =", req.user);
+
+//   if (!listing.owner.equals(req.user.id)) {
+//     return res.status(403).json({
+//       success: false,
+//       message: "Not owner",
+//     });
+//   }
+
+//   next();
+// };
+
+
 module.exports.isOwner = async (req, res, next) => {
   const { id } = req.params;
 
   const listing = await Listing.findById(id);
 
+  console.log("Listing =", listing);
+  console.log("Owner =", listing?.owner);
+  console.log("User =", req.user);
+
   if (!listing) {
-    throw new ExpressError(404, "Listing not found");
+    return res.status(404).json({
+      success: false,
+      message: "Listing not found",
+    });
   }
 
-  if (!listing.owner.equals(res.locals.currUser._id)) {
-    req.flash("error", "You are not the owner of this listing.");
-    return res.redirect(`/listings/${id}`);
+  if (!listing.owner) {
+    return res.status(500).json({
+      success: false,
+      message: "Listing owner missing",
+    });
+  }
+
+  if (listing.owner.toString() !== req.user.id) {
+    return res.status(403).json({
+      success: false,
+      message: "You are not the owner of this listing.",
+    });
   }
 
   next();
 };
 
-/* Validate Listing */
 module.exports.validateListing = (req, res, next) => {
+
+  console.log("BODY =", req.body);
+  console.log("FILE =", req.file);
+
   const { error } = listingSchema.validate(req.body);
 
   if (error) {
+    console.log(error.details);
+
     const errMsg = error.details.map((el) => el.message).join(",");
+
     throw new ExpressError(400, errMsg);
   }
 
   next();
 };
+
+
 
 /* Validate Review */
 module.exports.validateReview = (req, res, next) => {
@@ -144,9 +95,16 @@ module.exports.validateReview = (req, res, next) => {
   next();
 };
 
-/* Check Review Author */
+
+
+
+/*===========================
+   JWT - Check Review Author
+  =========================== 
+*/
+
 module.exports.isReviewAuthor = async (req, res, next) => {
-  const { id, reviewId } = req.params;
+  const { reviewId } = req.params;
 
   const review = await Review.findById(reviewId);
 
@@ -154,9 +112,11 @@ module.exports.isReviewAuthor = async (req, res, next) => {
     throw new ExpressError(404, "Review not found");
   }
 
-  if (!review.author.equals(res.locals.currUser._id)) {
-    req.flash("error", "You are not the author of this review.");
-    return res.redirect(`/listings/${id}`);
+  if (!review.author.equals(req.user.id)) {
+    return res.status(403).json({
+      success: false,
+      message: "You are not the author of this review.",
+    });
   }
 
   next();

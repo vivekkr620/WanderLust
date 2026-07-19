@@ -1,5 +1,6 @@
 export default function AuthInput({
   label,
+  name,
   type = "text",
   placeholder,
   value,
@@ -13,6 +14,7 @@ export default function AuthInput({
       </label>
 
       <input
+        name={name}
         type={type}
         placeholder={placeholder}
         value={value}

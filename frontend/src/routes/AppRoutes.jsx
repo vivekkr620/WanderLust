@@ -1,36 +1,68 @@
 import { Routes, Route } from "react-router-dom";
 
-import MainLayout from "../layouts/MainLayout.jsx";
+import MainLayout from "../layouts/MainLayout";
 
-import HomePage from "../pages/HomePage.jsx";
-import SearchResultPage from "../pages/SearchResultPage.jsx";
-import ListingDetailsPage from "../pages/ListingDetailsPage.jsx";
-import LoginPage from "../pages/LoginPage.jsx";
-import SignupPage from "../pages/SignupPage.jsx";
-import BecomeHostPage from "../pages/BecomeHostPage.jsx";
+// Route Guards
+import ProtectedRoute from "../components/ProtectedRoute";
 
-function AppRoutes() {
+// Pages
+import HomePage from "../pages/HomePage";
+import SearchResultPage from "../pages/SearchResultPage";
+import ListingDetailsPage from "../pages/ListingDetailsPage";
+import LoginPage from "../pages/LoginPage";
+import SignupPage from "../pages/SignupPage";
+import BecomeHostPage from "../pages/BecomeHostPage";
+import NewListingPage from "../pages/NewListingPage";
+import EditListingPage from "../pages/EditListingPage";
+
+export default function AppRoutes() {
   return (
     <Routes>
-
       <Route element={<MainLayout />}>
+        {/* ================= Public Routes ================= */}
 
         <Route path="/" element={<HomePage />} />
 
         <Route path="/search" element={<SearchResultPage />} />
 
         <Route path="/listings/:id" element={<ListingDetailsPage />} />
-        
+
+        {/* ================= Auth Routes ================= */}
+
         <Route path="/login" element={<LoginPage />} />
 
         <Route path="/signup" element={<SignupPage />} />
 
-        <Route path="/become-host" element={<BecomeHostPage />} />
+        {/* ================= Protected Routes ================= */}
 
+        <Route
+          path="/become-host"
+          element={
+            <ProtectedRoute>
+              <BecomeHostPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/listings/new"
+          element={
+            <ProtectedRoute>
+              <NewListingPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/listings/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditListingPage />
+            </ProtectedRoute>
+          }
+        />
+        
       </Route>
-
     </Routes>
   );
 }
-
-export default AppRoutes;

@@ -1,34 +1,7 @@
 const Listing = require("../models/listing.js");
 const Review = require("../models/review.js");
 const ExpressError = require("../utils/ExpressError.js");
-const { listingSchema, reviewSchema } = require("../schema.js");
-
-/*===========================
-   JWT - Check Listing Owner
-  =========================== 
-*/
-
-// module.exports.isOwner = async (req, res, next) => {
-//   const { id } = req.params;
-
-//   const listing = await Listing.findById(id);
-
-//   console.log(listing);
-
-//   console.log("Owner =", listing.owner);
-
-//   console.log("User =", req.user);
-
-//   if (!listing.owner.equals(req.user.id)) {
-//     return res.status(403).json({
-//       success: false,
-//       message: "Not owner",
-//     });
-//   }
-
-//   next();
-// };
-
+const { listingSchema, reviewSchema, bookingSchema } = require("../schema.js");
 
 module.exports.isOwner = async (req, res, next) => {
   const { id } = req.params;
@@ -82,7 +55,6 @@ module.exports.validateListing = (req, res, next) => {
 };
 
 
-
 /* Validate Review */
 module.exports.validateReview = (req, res, next) => {
   const { error } = reviewSchema.validate(req.body);
@@ -96,6 +68,22 @@ module.exports.validateReview = (req, res, next) => {
 };
 
 
+/*==================================
+    VALIDATE BOOKING
+  ==================================
+*/
+module.exports.validateBooking = (req, res, next) => {
+  const { error } = bookingSchema.validate(req.body);
+
+  if (error) {
+    const errMsg = error.details.map((el) => el.message).join(",");
+
+    throw new ExpressError(400, errMsg);
+  
+  }
+
+  next();
+}
 
 
 /*===========================

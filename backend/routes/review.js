@@ -7,7 +7,6 @@ const { verifyToken } = require("../middleware/authMiddleware.js");
 
 const {
   validateReview,
-  // isLoggedIn,
   isReviewAuthor,
 } = require("../middleware");
 

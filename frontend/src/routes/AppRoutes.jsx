@@ -14,6 +14,7 @@ import SignupPage from "../pages/SignupPage";
 import BecomeHostPage from "../pages/BecomeHostPage";
 import NewListingPage from "../pages/NewListingPage";
 import EditListingPage from "../pages/EditListingPage";
+import MyBookingsPage from "../pages/MyBookingPage";
 
 export default function AppRoutes() {
   return (
@@ -60,6 +61,11 @@ export default function AppRoutes() {
               <EditListingPage />
             </ProtectedRoute>
           }
+        />
+
+        <Route 
+          path="/my-bookings"
+          element={<MyBookingsPage />}
         />
         
       </Route>

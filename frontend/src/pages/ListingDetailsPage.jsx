@@ -24,6 +24,7 @@ export default function ListingDetailsPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchListing = useCallback(async () => {
+    
     const res = await api.get(`/listings/${id}`);
 
     console.log("Listing Response: ", res.data)

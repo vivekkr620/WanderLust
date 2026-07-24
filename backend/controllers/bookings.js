@@ -75,3 +75,41 @@ module.exports.getMyBookings = async (req, res) => {
   });
 
 };
+
+
+/* CANCEL BOOKING */
+module.exports.cancelBooking = async (req, res) => {
+
+  const { bookingId } = req.params;
+  const booking = await Booking.findById(bookingId);
+
+  if (!booking) {
+    throw new ExpressError(404, "Booking not found");
+  }
+
+  // booking.user == req.user.id;
+
+  if (booking.user.toString() !== req.user.id) {
+    throw new ExpressError (
+      403,
+      "You are not authorized to cancel this booking."
+    );
+  }
+
+  if(booking.status === "cancelled") {
+    throw new ExpressError(
+      400,
+      "Booking is already cancelled."
+    )
+  }
+
+  booking.status = "cancelled";
+
+  await booking.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Booking cancelled successfully",
+    booking,
+  });
+}

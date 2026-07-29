@@ -68,7 +68,7 @@ export default function BookingCard({ listing }) {
     } catch (err) {
       console.log(err);
 
-       console.log(err.response?.data);
+      console.log(err.response?.data);
 
       alert(
         err.response?.data?.message ||

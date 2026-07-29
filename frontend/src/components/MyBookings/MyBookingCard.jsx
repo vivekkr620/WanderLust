@@ -1,20 +1,23 @@
 import {
   FaMapMarkerAlt,
   FaCalendarAlt,
-//   FaUsers,
   FaCheckCircle,
   FaTimesCircle,
 } from "react-icons/fa";
 
 import { IoMoon } from "react-icons/io5";
-
+import { useState } from "react";
 import { BsClockHistory } from "react-icons/bs";
 import { MdCurrencyRupee } from "react-icons/md";
 
 import { Link } from "react-router-dom";
+import api from "../../services/api";
+import { toast } from "react-toastify";
 
-export default function MyBookingCard({ booking }) {
+export default function MyBookingCard({ booking, onCancel }) {
   const { listing, checkIn, checkOut, totalPrice, status } = booking;
+
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const formattedCheckIn = new Date(checkIn).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -48,6 +51,48 @@ export default function MyBookingCard({ booking }) {
     if (status === "cancelled") return "bg-red-100 text-red-700";
 
     return "bg-yellow-100 text-yellow-700";
+  };
+
+  const handleCancel = async () => {
+
+    const confirmCancel = window.confirm(
+      "Are you sure you want to cancel this booking?",
+    );
+
+    if (!confirmCancel) {
+      return;
+    }
+
+    try {
+      setIsCancelling(true);
+
+      const token = localStorage.getItem("token");
+
+      const res = await api.patch(
+        `/listings/${listing._id}/bookings/${booking._id}/cancel`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      console.log(res.data);
+
+      // Update parent state
+      onCancel(booking._id);
+
+      // Success Toast
+      toast.success("Booking cancelled successfully!");
+      
+    } catch (error) {
+      console.error(error);
+
+      toast.error(error.response?.data?.message || "Something went wrong!");
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   return (
@@ -113,6 +158,16 @@ export default function MyBookingCard({ booking }) {
         {/* Status */}
 
         <div className="flex justify-end mt-8">
+          {status === "pending" && (
+            <button
+              onClick={handleCancel}
+              disabled={isCancelling}
+              className="px-5 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition duration-300 mx-3"
+            >
+              {isCancelling ? "Cancelling..." : "Cancel Booking"}
+            </button>
+          )}
+
           <span
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor()}`}
           >

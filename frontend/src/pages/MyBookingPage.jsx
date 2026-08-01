@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 
-import MyBookingCard from "../components/Profile/MyBookingCard";
+import MyBookingCard from "../components/MyBookings/MyBookingCard";
 
 import { FaRegCalendarAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -27,6 +27,7 @@ export default function MyBookingsPage() {
       console.log(res.data);
 
       setBookings(res.data.bookings);
+      
     } catch (err) {
       console.log(err);
 
@@ -47,6 +48,16 @@ export default function MyBookingsPage() {
   if (error) {
     return <h2>{error}</h2>;
   }
+
+  const handleCancelBooking = (bookingId) => {
+    setBookings((prevBookings) =>
+      prevBookings.map((booking) =>
+        booking._id === bookingId
+          ? { ...booking, status: "cancelled" }
+          : booking,
+      ),
+    );
+  };
 
   if (bookings.length === 0) {
     return (
@@ -74,7 +85,11 @@ export default function MyBookingsPage() {
       <h1 className="text-4xl font-bold mb-10">My Bookings</h1>
 
       {bookings.map((booking) => (
-        <MyBookingCard key={booking._id} booking={booking} />
+        <MyBookingCard
+          key={booking._id}
+          booking={booking}
+          onCancel={handleCancelBooking}
+        />
       ))}
     </div>
   );

@@ -26,6 +26,14 @@ router
     wrapAsync(listingController.createListing)
 );
 
+/* my-listings page route */
+router.get(
+  "/my",
+  verifyToken,
+  wrapAsync(listingController.getMyListings)
+);
+
+
 router
   .route("/:id")
   .get(wrapAsync(listingController.showListing))

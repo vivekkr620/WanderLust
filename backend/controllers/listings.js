@@ -10,7 +10,6 @@ const ExpressError = require("../utils/ExpressError.js");
    GET ALL LISTINGS
 =========================== */
 module.exports.index = async (req, res) => {
-
   console.log("Search query =", req.query);
 
   const { q } = req.query;
@@ -64,12 +63,11 @@ module.exports.showListing = async (req, res) => {
    CREATE LISTING
 =========================== */
 module.exports.createListing = async (req, res) => {
-
   console.log("========== CREATE LISTING ==========");
   console.log("BODY:", req.body);
   console.log("FILE:", req.file);
   console.log("USER:", req.user);
-  
+
   const response = await geocodingClient
     .forwardGeocode({
       query: req.body.listing.location,
@@ -110,7 +108,7 @@ module.exports.updateListing = async (req, res) => {
   let listing = await Listing.findByIdAndUpdate(
     id,
     { ...req.body.listing },
-    { new: true }
+    { new: true },
   );
 
   if (!listing) {
@@ -149,5 +147,20 @@ module.exports.destroyListing = async (req, res) => {
     success: true,
     message: "Listing deleted successfully",
     listing: deletedListing,
+  });
+};
+
+/* ===========================
+  GET-MY-LISTING
+=========================== */
+
+module.exports.getMyListings = async (req, res, next) => {
+  const cur_user = req.user.id;
+
+  const listings = await Listing.find({ owner: cur_user });
+
+  return res.status(200).json({
+    success: true,
+    listings,
   });
 };

@@ -5,7 +5,6 @@ import MainLayout from "../layouts/MainLayout";
 // Route Guards
 import ProtectedRoute from "../components/ProtectedRoute";
 
-// Pages
 import HomePage from "../pages/HomePage";
 import SearchResultPage from "../pages/SearchResultPage";
 import ListingDetailsPage from "../pages/ListingDetailsPage";
@@ -15,6 +14,7 @@ import BecomeHostPage from "../pages/BecomeHostPage";
 import NewListingPage from "../pages/NewListingPage";
 import EditListingPage from "../pages/EditListingPage";
 import MyBookingsPage from "../pages/MyBookingPage";
+import ProfilePage from "../pages/ProfilePage";
 
 export default function AppRoutes() {
   return (
@@ -63,11 +63,16 @@ export default function AppRoutes() {
           }
         />
 
-        <Route 
-          path="/my-bookings"
-          element={<MyBookingsPage />}
+        <Route path="/my-bookings" element={<MyBookingsPage />} />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
         />
-        
       </Route>
     </Routes>
   );

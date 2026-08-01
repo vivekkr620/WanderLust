@@ -15,6 +15,7 @@ import NewListingPage from "../pages/NewListingPage";
 import EditListingPage from "../pages/EditListingPage";
 import MyBookingsPage from "../pages/MyBookingPage";
 import ProfilePage from "../pages/ProfilePage";
+import MyListingsPage from "../pages/MyListingsPage";
 
 export default function AppRoutes() {
   return (
@@ -73,7 +74,17 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/my-listings"
+          element={
+            <ProtectedRoute>
+              <MyListingsPage />
+            </ProtectedRoute>
+          }
+        />
       </Route>
+      
     </Routes>
   );
 }

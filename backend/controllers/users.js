@@ -1,4 +1,3 @@
-
 const User = require("../models/user.js");
 const jwt = require("jsonwebtoken");
 
@@ -30,7 +29,7 @@ module.exports.signup = async (req, res, next) => {
         process.env.JWT_SECRET,
         {
           expiresIn: "7d",
-        }
+        },
       );
 
       return res.status(201).json({
@@ -45,7 +44,6 @@ module.exports.signup = async (req, res, next) => {
       });
     });
   } catch (err) {
-
     console.error("========== SIGNUP ERROR ==========");
     console.error(err);
     console.error(err.stack);
@@ -73,44 +71,48 @@ module.exports.login = async (req, res) => {
   }
 
   // Step 2: Authenticate using username (passport-local-mongoose)
-  User.authenticate()(user.username, password, (err, authenticatedUser, options) => {
-    if (err) {
-      return res.status(500).json({
-        success: false,
-        message: "Something went wrong",
-      });
-    }
-
-    if (!authenticatedUser) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    // Step 3: Generate JWT
-    const token = jwt.sign(
-      {
-        id: authenticatedUser._id,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
+  User.authenticate()(
+    user.username,
+    password,
+    (err, authenticatedUser, options) => {
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          message: "Something went wrong",
+        });
       }
-    );
 
-    // Step 4: Send Response
-    return res.status(200).json({
-      success: true,
-      message: "Login successful",
-      token,
-      user: {
-        id: authenticatedUser._id,
-        username: authenticatedUser.username,
-        email: authenticatedUser.email,
-      },
-    });
-  });
+      if (!authenticatedUser) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid email or password",
+        });
+      }
+
+      // Step 3: Generate JWT
+      const token = jwt.sign(
+        {
+          id: authenticatedUser._id,
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "7d",
+        },
+      );
+
+      // Step 4: Send Response
+      return res.status(200).json({
+        success: true,
+        message: "Login successful",
+        token,
+        user: {
+          id: authenticatedUser._id,
+          username: authenticatedUser.username,
+          email: authenticatedUser.email,
+        },
+      });
+    },
+  );
 };
 
 /* ===========================
@@ -127,5 +129,59 @@ module.exports.logout = (req, res, next) => {
       success: true,
       message: "Logged out successfully",
     });
+  });
+};
+
+/* PROFILE PAGE */
+module.exports.getProfile = async (req, res, next) => {
+  const user = await User.findById(req.user.id).select("-hash -salt");
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    user,
+  });
+}; 
+
+/* UPDATE PROFILE */
+module.exports.updateProfile = async (req, res, next) => {
+  const { username, email } = req.body;
+
+  if (!username || !email) {
+    return res.status(400).json({
+      success: false,
+      message: "Username and Email are required",
+    });
+  }
+
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  // Update values
+  user.username = username;
+  user.email = email;
+
+  await user.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Profile updated successfully",
+    user: {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+    },
   });
 };

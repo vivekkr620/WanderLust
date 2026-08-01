@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import AuthContext from "../../context/AuthContext";
@@ -12,6 +12,8 @@ export default function NavActions() {
 
   const navigate = useNavigate();
 
+  const [openMenu, setOpenMenu] = useState(false);
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -19,11 +21,9 @@ export default function NavActions() {
 
   return (
     <div className="flex items-center gap-5">
-
       {isAuthenticated ? (
         <>
           <Link
-            // to="/become-host"
             to="/listings/new"
             className="font-medium hover:text-rose-500 transition"
           >
@@ -34,23 +34,75 @@ export default function NavActions() {
             <FaGlobe />
           </button>
 
-          <div className="flex items-center gap-3 border rounded-full px-4 py-2">
-
-            <HiBars3 className="text-xl" />
-
-            <FaRegUserCircle className="text-2xl" />
-
-            <span className="font-medium">
-              {user?.username}
-            </span>
-
+          {/* Profile Dropdown */}
+          <div className="relative">
             <button
-              onClick={handleLogout}
-              className="text-red-500 text-sm"
+              onClick={() => setOpenMenu(!openMenu)}
+              className="flex items-center gap-3 border rounded-full px-4 py-2 hover:shadow-md transition"
             >
-              Logout
+              <HiBars3 className="text-xl" />
+
+              <FaRegUserCircle className="text-2xl" />
+
+              <span className="font-medium">
+                {user?.username}
+              </span>
             </button>
 
+            {openMenu && (
+              <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border overflow-hidden z-50">
+
+                <button
+                  onClick={() => {
+                    navigate("/profile");
+                    setOpenMenu(false);
+                  }}
+                  className="w-full text-left px-5 py-3 hover:bg-gray-100"
+                >
+                  Profile
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate("/my-listings");
+                    setOpenMenu(false);
+                  }}
+                  className="w-full text-left px-5 py-3 hover:bg-gray-100"
+                >
+                  My Listings
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate("/my-bookings");
+                    setOpenMenu(false);
+                  }}
+                  className="w-full text-left px-5 py-3 hover:bg-gray-100"
+                >
+                  My Bookings
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate("/listings/new");
+                    setOpenMenu(false);
+                  }}
+                  className="w-full text-left px-5 py-3 hover:bg-gray-100"
+                >
+                  Become a Host
+                </button>
+
+                <hr />
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-5 py-3 text-red-500 hover:bg-red-50"
+                >
+                  Logout
+                </button>
+
+              </div>
+            )}
           </div>
         </>
       ) : (
@@ -70,7 +122,6 @@ export default function NavActions() {
           </Link>
         </>
       )}
-
     </div>
   );
 }
